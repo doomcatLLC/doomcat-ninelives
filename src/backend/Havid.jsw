@@ -1,0 +1,38 @@
+import {fetch} from 'wix-fetch'; // Import fetch to make outbound HTTP requests
+import {ok, badRequest} from 'wix-http-functions'; // Import response functions
+
+// This is a sample function for handling requests at /api/havid
+export async function post_havid(request) {
+    let requestBody = await request.body.json(); // Parse the request body
+    const userInput = requestBody.prompt; // Get the user's prompt from the request
+
+    // Define the URL for OpenAI's API
+    const openAiUrl = 'https://api.openai.com/v1/engines/text-davinci-003/completions';
+
+    // Replace 'YOUR_API_KEY' with your actual OpenAI API key
+    const apiKey = 'YOUR_API_KEY'; 
+
+    try {
+        // Make a POST request to OpenAI's API
+        const aiResponse = await fetch(openAiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                prompt: userInput, // Send the user's prompt
+                max_tokens: 150
+            })
+        });
+
+        // Parse the response from OpenAI's API
+        const {choices} = await aiResponse.json();
+
+        // Return the first choice's text as the response
+        return ok({body: {response: choices[0].text}});
+    } catch (error) {
+        // If an error occurs, return a bad request status with the error message
+        return badRequest({body: {error: "Error processing your request"}});
+    }
+}
